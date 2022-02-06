@@ -9,5 +9,6 @@
 ._*
 .DS_Store
 
-# Binary names
+# Project patterns
 adventure
+bindings.json
