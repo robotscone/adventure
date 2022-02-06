@@ -2,9 +2,18 @@ package main
 
 import (
 	"fmt"
+	"runtime"
 
+	"github.com/robotscone/adventure/internal/input"
 	"github.com/veandco/go-sdl2/sdl"
 )
+
+func init() {
+	// Ensure that the main function runs on the main thread
+	// This will prevent any crashes where certain SDL2 functions expect to be
+	// on the main thread
+	runtime.LockOSThread()
+}
 
 func main() {
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
@@ -35,9 +44,9 @@ func main() {
 			switch event.(type) {
 			case *sdl.QuitEvent:
 				quit = true
-			default:
-				fmt.Printf("Event %T\n", event)
 			}
 		}
+
+		input.Update()
 	}
 }
