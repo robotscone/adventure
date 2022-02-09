@@ -89,7 +89,7 @@ func (a *Animation) Step(delta float64) {
 	for a.elapsed >= a.period {
 		a.idx++
 		a.elapsed -= a.period
-
-		a.frame = a.frames[a.idx%len(a.frames)]
 	}
+
+	a.frame = a.frames[a.idx%len(a.frames)]
 }
