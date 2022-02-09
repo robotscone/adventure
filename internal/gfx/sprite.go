@@ -33,6 +33,8 @@ func (s *Sprite) AddAnimation(name string, animation *Animation) {
 
 func (s *Sprite) SetAnimation(name string) {
 	s.animation = s.animations[name]
+
+	s.animation.Reset()
 }
 
 func (s *Sprite) Update(delta float64) {
