@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -21,6 +22,9 @@ var keyboard struct {
 	previous []*Button
 	current  []*Button
 }
+
+// Keeps track of which key bindings have been warned about being unmapped.
+var warned = make(map[string]struct{})
 
 // Registered devices.
 var devices []*Device
@@ -55,6 +59,12 @@ func NewDevice(bindings BindingMap) *Device {
 func (d *Device) Get(action string) *Button {
 	if button, ok := d.buttons[action]; ok {
 		return button
+	}
+
+	if _, ok := warned[action]; !ok {
+		warned[action] = struct{}{}
+
+		fmt.Printf("unmapped input device action: %q\n", action)
 	}
 
 	return unmappedButton
