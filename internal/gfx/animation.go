@@ -14,6 +14,13 @@ const (
 	FlipVertical   Flip = 2
 )
 
+type timingKind byte
+
+const (
+	timingFPS      timingKind = 0
+	timingDuration timingKind = 1
+)
+
 type Frame struct {
 	src  sdl.Rect
 	flip Flip
@@ -22,10 +29,11 @@ type Frame struct {
 type Animation struct {
 	elapsed  float64
 	period   float64
-	duration time.Duration
 	idx      int
 	frame    *Frame
 	frames   []*Frame
+	duration time.Duration
+	timing   timingKind
 }
 
 func (a *Animation) AddFrame(x, y, w, h int, flip Flip) {
@@ -43,10 +51,19 @@ func (a *Animation) AddFrame(x, y, w, h int, flip Flip) {
 		a.frame = a.frames[0]
 	}
 
-	a.SetDuration(a.duration)
+	if a.timing == timingDuration {
+		a.SetDuration(a.duration)
+	}
+}
+
+func (a *Animation) SetFPS(fps float64) {
+	a.timing = timingFPS
+	a.duration = 1 * time.Second
+	a.period = a.duration.Seconds() / fps
 }
 
 func (a *Animation) SetDuration(duration time.Duration) {
+	a.timing = timingDuration
 	a.duration = duration
 	a.period = a.duration.Seconds() / float64(len(a.frames))
 }
