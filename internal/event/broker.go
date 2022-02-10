@@ -80,7 +80,7 @@ func (b *Broker) fire(event Event) {
 	key := eventType.Name()
 	listenerFuncs, ok := b.listeners[key]
 	if !ok {
-		panic(fmt.Sprintf("unknown event %v", key))
+		return
 	}
 
 	callArgs := []reflect.Value{reflect.ValueOf(event)}
