@@ -38,15 +38,20 @@ func (s *Sprite) RegisterAnimation(name string, animation *Animation) {
 }
 
 func (s *Sprite) SetAnimation(name string) {
-	if animation, ok := s.animations[name]; ok {
-		if s.animation == animation {
-			return
-		}
+	animation, ok := s.animations[name]
+	if !ok {
+		fmt.Printf("attempted to set unknown animation %q\n", name)
 
-		s.animation = animation
-
-		s.animation.Reset()
+		return
 	}
+
+	if s.animation == animation {
+		return
+	}
+
+	s.animation = animation
+
+	s.animation.Reset()
 }
 
 func (s *Sprite) Update(delta float64) {
