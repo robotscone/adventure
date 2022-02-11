@@ -9,16 +9,16 @@ import (
 type Flip byte
 
 const (
-	FlipNone       Flip = 0
-	FlipHorizontal Flip = 1
-	FlipVertical   Flip = 2
+	FlipNone Flip = iota
+	FlipHorizontal
+	FlipVertical
 )
 
 type timingKind byte
 
 const (
-	timingFPS      timingKind = 0
-	timingDuration timingKind = 1
+	timingFPS timingKind = iota
+	timingDuration
 )
 
 type Frame struct {
