@@ -5,7 +5,19 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-var textures = make(map[string]*Texture)
+type ScaleQuality string
+
+const (
+	ScaleNearest     ScaleQuality = "nearest"
+	ScaleLinear      ScaleQuality = "linear"
+	ScaleAnisotropic ScaleQuality = "best"
+)
+
+var textures = map[ScaleQuality]map[string]*Texture{
+	ScaleNearest:     make(map[string]*Texture),
+	ScaleLinear:      make(map[string]*Texture),
+	ScaleAnisotropic: make(map[string]*Texture),
+}
 
 type Texture struct {
 	renderer *sdl.Renderer
@@ -14,10 +26,12 @@ type Texture struct {
 	height   int
 }
 
-func NewTexture(renderer *sdl.Renderer, path string) *Texture {
-	if t, ok := textures[path]; ok {
+func NewTexture(renderer *sdl.Renderer, scaleQuality ScaleQuality, path string) *Texture {
+	if t, ok := textures[scaleQuality][path]; ok {
 		return t
 	}
+
+	sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, string(scaleQuality))
 
 	image, err := img.Load(path)
 	if err != nil {
@@ -39,7 +53,7 @@ func NewTexture(renderer *sdl.Renderer, path string) *Texture {
 		height:   int(image.H),
 	}
 
-	textures[path] = t
+	textures[scaleQuality][path] = t
 
 	return t
 }
