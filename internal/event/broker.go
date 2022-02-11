@@ -20,38 +20,12 @@ func NewBroker() *Broker {
 
 func (b *Broker) Listen(listener Listener) {
 	listenerType := reflect.TypeOf(listener)
-	if listenerType.Kind() != reflect.Func {
-		panic("listener must be a function")
+
+	if want := 1; listenerType.NumIn() != want {
+		panic(fmt.Sprintf("listener must have %v parameters, got %v", want, listenerType.NumIn()))
 	}
 
-	paramIfaces := []interface{}{(*Event)(nil)}
-	paramCount := len(paramIfaces)
-
-	// Ensure the listener has the correct number of parameters
-	if listenerType.NumIn() != paramCount {
-		panic(fmt.Sprintf("listener must have %v parameters, got %v", paramCount, listenerType.NumIn()))
-	}
-
-	// Manually type check the listener's parameters to ensure they implement required interfaces
-	for i, iface := range paramIfaces {
-		if !listenerType.In(i).Implements(reflect.TypeOf(iface).Elem()) {
-			panic(fmt.Sprintf("listener parameter %v does not implement %T", i, iface))
-		}
-	}
-
-	// The first parameter of a listener should be a struct
-	if i := 0; listenerType.In(i).Kind() != reflect.Struct {
-		panic(fmt.Sprintf("listener parameter %v must be a struct", i))
-	}
-
-	// We use the name of the first parameter's type as the event key
-	// This also allows us to statically type event data at the same time
-	eventType := listenerType.In(0)
-	if eventType.Kind() != reflect.Struct {
-		panic("listener parameter  must be a struct")
-	}
-
-	key := eventType.Name()
+	key := eventTypeName(listenerType.In(0))
 	b.listeners[key] = append(b.listeners[key], listener)
 }
 
@@ -72,21 +46,21 @@ func (b *Broker) Process() {
 }
 
 func (b *Broker) fire(event Event) {
-	eventType := reflect.TypeOf(event)
-	if eventType.Kind() != reflect.Struct {
-		panic("event must be a struct")
-	}
-
-	key := eventType.Name()
-	listenerFuncs, ok := b.listeners[key]
-	if !ok {
-		return
-	}
-
+	key := eventTypeName(reflect.TypeOf(event))
 	callArgs := []reflect.Value{reflect.ValueOf(event)}
 
-	for _, listenerFunc := range listenerFuncs {
+	for _, listenerFunc := range b.listeners[key] {
 		listener := reflect.ValueOf(listenerFunc)
 		listener.Call(callArgs)
 	}
+}
+
+func eventTypeName(typ reflect.Type) string {
+	var name string
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+		name = "*"
+	}
+
+	return name + typ.PkgPath() + "." + typ.Name()
 }
