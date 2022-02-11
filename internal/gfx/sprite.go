@@ -29,12 +29,12 @@ func NewSprite(texture *Texture) *Sprite {
 	}
 }
 
-func (s *Sprite) RegisterAnimation(name string, animation *Animation) {
+func (s *Sprite) RegisterAnimation(name string, animation Animation) {
 	if _, ok := s.animations[name]; ok {
 		panic(fmt.Sprintf("duplicate animation registration for %q", name))
 	}
 
-	s.animations[name] = animation
+	s.animations[name] = &animation
 }
 
 func (s *Sprite) SetAnimation(name string) {
