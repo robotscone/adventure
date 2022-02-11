@@ -1,6 +1,8 @@
 package gfx
 
 import (
+	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -27,14 +29,24 @@ func NewSprite(texture *Texture) *Sprite {
 	}
 }
 
-func (s *Sprite) AddAnimation(name string, animation *Animation) {
+func (s *Sprite) RegisterAnimation(name string, animation *Animation) {
+	if _, ok := s.animations[name]; ok {
+		panic(fmt.Sprintf("duplicate animation registration for %q", name))
+	}
+
 	s.animations[name] = animation
 }
 
 func (s *Sprite) SetAnimation(name string) {
-	s.animation = s.animations[name]
+	if animation, ok := s.animations[name]; ok {
+		if s.animation == animation {
+			return
+		}
 
-	s.animation.Reset()
+		s.animation = animation
+
+		s.animation.Reset()
+	}
 }
 
 func (s *Sprite) Update(delta float64) {
