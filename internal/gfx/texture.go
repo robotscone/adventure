@@ -1,6 +1,8 @@
 package gfx
 
 import (
+	"math"
+
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -56,6 +58,14 @@ func NewTexture(renderer *sdl.Renderer, scaleQuality ScaleQuality, path string) 
 	textures[scaleQuality][path] = t
 
 	return t
+}
+
+func (t *Texture) SetAlphaMod(a float64) {
+	t.texture.SetAlphaMod(uint8(math.MaxUint8 * a))
+}
+
+func (t *Texture) SetColorMod(r, g, b float64) {
+	t.texture.SetColorMod(uint8(math.MaxUint8*r), uint8(math.MaxUint8*g), uint8(math.MaxUint8*b))
 }
 
 func (t *Texture) Draw(src *sdl.Rect, dst *sdl.FRect, flip Flip) {

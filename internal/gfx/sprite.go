@@ -7,7 +7,7 @@ import (
 )
 
 type Sprite struct {
-	texture    *Texture
+	*Texture
 	dst        sdl.FRect
 	animation  *Animation
 	animations map[string]*Animation
@@ -19,7 +19,7 @@ func NewSprite(texture *Texture) *Sprite {
 	animation.AddFrame(0, 0, texture.width, texture.height, FlipNone)
 
 	return &Sprite{
-		texture: texture,
+		Texture: texture,
 		dst: sdl.FRect{
 			W: float32(texture.width),
 			H: float32(texture.height),
@@ -64,5 +64,5 @@ func (s *Sprite) Draw(x, y float64) {
 	s.dst.W = float32(s.animation.frame.src.W)
 	s.dst.H = float32(s.animation.frame.src.H)
 
-	s.texture.Draw(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
+	s.Texture.Draw(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
 }
