@@ -97,13 +97,13 @@ func (f *FSM) Render() {
 	f.state.Render()
 }
 
-func (f *FSM) transition() bool {
+func (f *FSM) transition() {
 	if f.next == nil || f.next == f.state {
 		f.next = nil
 		f.data = nil
 		f.stackOp = stackNone
 
-		return false
+		return
 	}
 
 	f.state.Exit()
@@ -131,6 +131,4 @@ func (f *FSM) transition() bool {
 	f.next = nil
 	f.data = nil
 	f.stackOp = stackNone
-
-	return true
 }
