@@ -55,7 +55,7 @@ func (s *Sprite) SetAnimation(name string) {
 }
 
 func (s *Sprite) Update(delta float64) {
-	s.animation.Step(delta)
+	s.animation.Update(delta)
 }
 
 func (s *Sprite) Draw(x, y float64) {
