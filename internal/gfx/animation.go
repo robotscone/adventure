@@ -79,7 +79,7 @@ func (a *Animation) Reset() {
 	}
 }
 
-func (a *Animation) Step(delta float64) {
+func (a *Animation) Update(delta float64) {
 	a.elapsed += delta
 
 	if a.period <= 0 {
