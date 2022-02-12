@@ -17,7 +17,7 @@ type Controller interface {
 }
 
 type State interface {
-	Init()
+	Init(controller Controller)
 	Enter(data interface{})
 	Input(controller Controller, device *input.Device)
 	Update(controller Controller, delta float64)
@@ -27,7 +27,7 @@ type State interface {
 
 type Base struct{}
 
-func (*Base) Init()                                             {}
+func (*Base) Init(controller Controller)                        {}
 func (*Base) Enter(data interface{})                            {}
 func (*Base) Input(controller Controller, device *input.Device) {}
 func (*Base) Update(controller Controller, delta float64)       {}

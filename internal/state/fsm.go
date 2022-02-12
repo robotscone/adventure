@@ -32,7 +32,7 @@ func (f *FSM) RegisterState(name string, state State) {
 		panic(fmt.Sprintf("duplicate state registration for %q", name))
 	}
 
-	state.Init()
+	state.Init(f)
 
 	f.states[name] = state
 }
@@ -76,7 +76,7 @@ func (f *FSM) Pop() {
 }
 
 func (f *FSM) Init() {
-	f.state.Init()
+	f.state.Init(f)
 }
 
 func (f *FSM) Input(device *input.Device) {
