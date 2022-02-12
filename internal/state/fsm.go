@@ -6,6 +6,8 @@ import (
 	"github.com/robotscone/adventure/internal/input"
 )
 
+var base = &Base{}
+
 type group struct {
 	state State
 	data  interface{}
@@ -22,7 +24,7 @@ type FSM struct {
 
 func NewFSM() *FSM {
 	return &FSM{
-		state:  &Base{},
+		state:  base,
 		states: make(map[string]State),
 	}
 }
