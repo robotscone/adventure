@@ -8,23 +8,14 @@ import (
 
 var base = &Base{}
 
-type group struct {
-	state State
-	data  interface{}
-}
-
 type FSM struct {
-	next    State
-	data    interface{}
-	state   State
-	stack   []*group
-	stackOp stackOp
-	states  map[string]State
+	stack  []State
+	states map[string]State
 }
 
 func NewFSM() *FSM {
 	return &FSM{
-		state:  base,
+		stack:  []State{base},
 		states: make(map[string]State),
 	}
 }
@@ -34,22 +25,27 @@ func (f *FSM) RegisterState(name string, state State) {
 		panic(fmt.Sprintf("duplicate state registration for %q", name))
 	}
 
-	state.Init(f)
-
 	f.states[name] = state
+
+	state.Init(f)
 }
 
 func (f *FSM) Switch(name string, data interface{}) {
 	state, ok := f.states[name]
 	if !ok {
-		fmt.Printf("attempted to set unknown state %q\n", name)
+		fmt.Printf("attempted to switch to unknown state %q\n", name)
 
 		return
 	}
 
-	f.next = state
-	f.data = data
-	f.stackOp = stackNone
+	n := len(f.stack) - 1
+	top := f.stack[n]
+
+	top.Exit()
+
+	f.stack[n] = state
+
+	state.Enter(f, data)
 }
 
 func (f *FSM) Push(name string, data interface{}) {
@@ -60,9 +56,9 @@ func (f *FSM) Push(name string, data interface{}) {
 		return
 	}
 
-	f.next = state
-	f.data = data
-	f.stackOp = stackPush
+	f.stack = append(f.stack, state)
+
+	state.Enter(f, data)
 }
 
 func (f *FSM) Pop() {
@@ -72,63 +68,27 @@ func (f *FSM) Pop() {
 		return
 	}
 
-	f.next = f.stack[len(f.stack)-1].state
-	f.data = f.stack[len(f.stack)-1].data
-	f.stackOp = stackPop
-}
+	n := len(f.stack) - 1
+	top := f.stack[n]
 
-func (f *FSM) Init() {
-	f.state.Init(f)
+	top.Exit()
+
+	f.stack[n] = nil
+	f.stack = f.stack[:n]
+
+	f.stack[len(f.stack)-1].Resume(f)
 }
 
 func (f *FSM) Input(device *input.Device) {
-	f.state.Input(f, device)
-
-	f.transition()
+	f.stack[len(f.stack)-1].Input(f, device)
 }
 
 func (f *FSM) Update(delta float64) {
-	f.state.Update(f, delta)
-
-	f.transition()
+	f.stack[len(f.stack)-1].Update(f, delta)
 }
 
 func (f *FSM) Render() {
-	f.state.Render()
-}
-
-func (f *FSM) transition() {
-	if f.next == nil || f.next == f.state {
-		f.next = nil
-		f.data = nil
-		f.stackOp = stackNone
-
-		return
+	for i := 0; i < len(f.stack); i++ {
+		f.stack[i].Render()
 	}
-
-	f.state.Exit()
-
-	switch f.stackOp {
-	case stackNone:
-		// Do nothing
-	case stackPush:
-		f.stack = append(f.stack, &group{
-			state: f.state,
-			data:  f.data,
-		})
-	case stackPop:
-		if len(f.stack) > 0 {
-			n := len(f.stack) - 1
-			f.stack[n] = nil
-			f.stack = f.stack[:n]
-		}
-	}
-
-	f.state = f.next
-
-	f.state.Enter(f.data)
-
-	f.next = nil
-	f.data = nil
-	f.stackOp = stackNone
 }
