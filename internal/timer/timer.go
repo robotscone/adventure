@@ -19,6 +19,10 @@ type Timer struct {
 	everys []*task
 }
 
+func New() *Timer {
+	return &Timer{}
+}
+
 func (t *Timer) After(interval time.Duration, f Func) {
 	t.afters = append(t.afters, &task{
 		interval: interval.Seconds(),
