@@ -3,27 +3,34 @@ package state
 import "github.com/robotscone/adventure/internal/input"
 
 type Controller interface {
-	Switch(name string, data interface{})
-	Push(name string, data interface{})
+	Switch(name string, message interface{})
+	Push(name string, message interface{})
 	Pop()
 }
 
+type Data struct {
+	Device *input.Device
+	Delta  float64
+}
+
 type State interface {
-	Init(controller Controller)
-	Enter(controller Controller, data interface{})
-	Resume(controller Controller)
-	Input(controller Controller, device *input.Device)
-	Update(controller Controller, delta float64)
+	Init(controller Controller, data *Data)
+	Enter(controller Controller, data *Data, message interface{})
+	Resume(controller Controller, data *Data)
+	Input(controller Controller, data *Data)
+	Update(controller Controller, data *Data)
 	Render()
+	Pause()
 	Exit()
 }
 
 type Base struct{}
 
-func (*Base) Init(controller Controller)                        {}
-func (*Base) Enter(controller Controller, data interface{})     {}
-func (*Base) Resume(controller Controller)                      {}
-func (*Base) Input(controller Controller, device *input.Device) {}
-func (*Base) Update(controller Controller, delta float64)       {}
-func (*Base) Render()                                           {}
-func (*Base) Exit()                                             {}
+func (*Base) Init(controller Controller, data *Data)                       {}
+func (*Base) Enter(controller Controller, data *Data, message interface{}) {}
+func (*Base) Resume(controller Controller, data *Data)                     {}
+func (*Base) Input(controller Controller, data *Data)                      {}
+func (*Base) Update(controller Controller, data *Data)                     {}
+func (*Base) Render()                                                      {}
+func (*Base) Pause()                                                       {}
+func (*Base) Exit()                                                        {}
