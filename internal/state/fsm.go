@@ -2,22 +2,24 @@ package state
 
 import (
 	"fmt"
-
-	"github.com/robotscone/adventure/internal/input"
 )
 
 var base = &Base{}
 
 type FSM struct {
+	data   *Data
 	stack  []State
 	states map[string]State
 }
 
-func NewFSM() *FSM {
-	return &FSM{
+func NewFSM(data *Data) *FSM {
+	fsm := &FSM{
+		data:   data,
 		stack:  []State{base},
 		states: make(map[string]State),
 	}
+
+	return fsm
 }
 
 func (f *FSM) RegisterState(name string, state State) {
@@ -27,10 +29,10 @@ func (f *FSM) RegisterState(name string, state State) {
 
 	f.states[name] = state
 
-	state.Init(f)
+	state.Init(f, f.data)
 }
 
-func (f *FSM) Switch(name string, data interface{}) {
+func (f *FSM) Switch(name string, message interface{}) {
 	state, ok := f.states[name]
 	if !ok {
 		fmt.Printf("attempted to switch to unknown state %q\n", name)
@@ -39,16 +41,15 @@ func (f *FSM) Switch(name string, data interface{}) {
 	}
 
 	n := len(f.stack) - 1
-	top := f.stack[n]
 
-	top.Exit()
+	f.stack[n].Exit()
 
 	f.stack[n] = state
 
-	state.Enter(f, data)
+	state.Enter(f, f.data, message)
 }
 
-func (f *FSM) Push(name string, data interface{}) {
+func (f *FSM) Push(name string, message interface{}) {
 	state, ok := f.states[name]
 	if !ok {
 		fmt.Printf("attempted to push unknown state %q\n", name)
@@ -56,9 +57,11 @@ func (f *FSM) Push(name string, data interface{}) {
 		return
 	}
 
+	f.stack[len(f.stack)-1].Pause()
+
 	f.stack = append(f.stack, state)
 
-	state.Enter(f, data)
+	state.Enter(f, f.data, message)
 }
 
 func (f *FSM) Pop() {
@@ -69,22 +72,21 @@ func (f *FSM) Pop() {
 	}
 
 	n := len(f.stack) - 1
-	top := f.stack[n]
 
-	top.Exit()
+	f.stack[n].Exit()
 
 	f.stack[n] = nil
 	f.stack = f.stack[:n]
 
-	f.stack[len(f.stack)-1].Resume(f)
+	f.stack[len(f.stack)-1].Resume(f, f.data)
 }
 
-func (f *FSM) Input(device *input.Device) {
-	f.stack[len(f.stack)-1].Input(f, device)
+func (f *FSM) Input() {
+	f.stack[len(f.stack)-1].Input(f, f.data)
 }
 
-func (f *FSM) Update(delta float64) {
-	f.stack[len(f.stack)-1].Update(f, delta)
+func (f *FSM) Update() {
+	f.stack[len(f.stack)-1].Update(f, f.data)
 }
 
 func (f *FSM) Render() {
