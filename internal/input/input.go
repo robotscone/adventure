@@ -34,11 +34,19 @@ type Device struct {
 }
 
 var Mouse = struct {
+	*Device
 	current  map[string]*Button
 	previous map[string]*Button
 	Position linalg.Vec2
 	Delta    linalg.Vec2
 }{
+	Device: NewDevice(BindingMap{
+		"left":   {"mouse:left"},
+		"middle": {"mouse:middle"},
+		"right":  {"mouse:right"},
+		"extra1": {"mouse:extra1"},
+		"extra2": {"mouse:extra2"},
+	}),
 	current:  newMouseButtons(),
 	previous: newMouseButtons(),
 }

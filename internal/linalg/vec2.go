@@ -32,7 +32,7 @@ func (v Vec2) Mul(rhs float64) Vec2 {
 	}
 }
 
-func (v Vec2) Negate() Vec2 {
+func (v Vec2) Neg() Vec2 {
 	return Vec2{
 		X: -v.X,
 		Y: -v.Y,
@@ -43,24 +43,24 @@ func (v Vec2) Dot(rhs Vec2) float64 {
 	return v.X*rhs.X + v.Y*rhs.Y
 }
 
-func (v Vec2) MagnitudeSq() float64 {
+func (v Vec2) MagSq() float64 {
 	// The result of the dot product of a vector with itself is the magnitude
 	// squared because the dot product is the scalar projection of the lhs
 	// vector onto the rhs vector which is then scaled by rhs vector's magnitude
 	return v.Dot(v)
 }
 
-func (v Vec2) Magnitude() float64 {
-	return math.Sqrt(v.MagnitudeSq())
+func (v Vec2) Mag() float64 {
+	return math.Sqrt(v.MagSq())
 }
 
-func (v Vec2) Normalise() Vec2 {
+func (v Vec2) Norm() Vec2 {
 	// A zero vector cannot be normalised
 	if v.X == 0 && v.Y == 0 {
 		return v
 	}
 
-	reciprocal := 1.0 / v.Magnitude()
+	reciprocal := 1.0 / v.Mag()
 
 	return v.Mul(reciprocal)
 }
