@@ -1,8 +1,10 @@
 package input
 
 import (
+	"strings"
 	"time"
 
+	"github.com/robotscone/adventure/internal/linalg"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -29,6 +31,16 @@ type Device struct {
 	bindings BindingMap
 	previous ButtonMap
 	current  ButtonMap
+}
+
+var Mouse = struct {
+	current  map[string]*Button
+	previous map[string]*Button
+	Position linalg.Vec2
+	Delta    linalg.Vec2
+}{
+	current:  newMouseButtons(),
+	previous: newMouseButtons(),
 }
 
 var keyboard struct {
@@ -92,7 +104,30 @@ func setButtonState(current, previous *Button, value float64, now time.Time) {
 
 func Update() {
 	now := time.Now()
+	mouseX, mouseY, mouseState := sdl.GetMouseState()
 	keyboardState := sdl.GetKeyboardState()
+
+	mousePreviousX := Mouse.Position.X
+	mousePreviousY := Mouse.Position.Y
+	Mouse.Position.X = float64(mouseX)
+	Mouse.Position.Y = float64(mouseY)
+	Mouse.Delta.X = Mouse.Position.X - mousePreviousX
+	Mouse.Delta.Y = Mouse.Position.Y - mousePreviousY
+
+	// Save the last mouse state so we can do comparisons
+	for name, button := range Mouse.current {
+		*Mouse.previous[name] = *button
+	}
+
+	for name, mask := range mouseMasks {
+		var value float64
+		if mouseState&mask != 0 {
+			// If the button is down we set value to 1
+			value = 1
+		}
+
+		setButtonState(Mouse.current[name], Mouse.previous[name], value, now)
+	}
 
 	// If the current keyboard state's length is less than SDL is reporting
 	// then we just re-make the slice and populate with blank button states
@@ -124,13 +159,23 @@ func Update() {
 			current.Value = 0
 
 			for _, name := range buttons {
-				code, ok := scancodes[name]
-				if !ok {
-					continue
-				}
+				switch {
+				case strings.HasPrefix(name, "mouse:"):
+					parts := strings.Split(name, ":")
+					key := parts[len(parts)-1]
 
-				if button := &keyboard.current[code]; button.Value != 0 {
-					current.Value = button.Value
+					if button := Mouse.current[key]; button.Value != 0 {
+						current.Value = button.Value
+					}
+				case strings.HasPrefix(name, "keyboard:"):
+					code, ok := scancodes[name]
+					if !ok {
+						continue
+					}
+
+					if button := &keyboard.current[code]; button.Value != 0 {
+						current.Value = button.Value
+					}
 				}
 			}
 
