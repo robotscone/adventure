@@ -20,25 +20,12 @@ type Button struct {
 	DownDuration time.Duration
 }
 
-// BindingMap is a map of action strings to input names that we can look up from SDL.
-type BindingMap map[string][]string
-
-// ButtonMap is a map of action strings to actual button state.
-type ButtonMap map[string]*Button
-
-// Device represents an input device and must be created using NewDevice.
-type Device struct {
-	bindings BindingMap
-	previous ButtonMap
-	current  ButtonMap
-}
-
 var Mouse = struct {
 	*Device
-	current  map[string]*Button
-	previous map[string]*Button
 	Position linalg.Vec2
 	Delta    linalg.Vec2
+	current  map[string]*mouseButton
+	previous map[string]*mouseButton
 }{
 	Device: NewDevice(BindingMap{
 		"left":   {"mouse:left"},
@@ -54,6 +41,19 @@ var Mouse = struct {
 var keyboard struct {
 	current  []Button
 	previous []Button
+}
+
+// BindingMap is a map of action strings to input names that we can look up from SDL.
+type BindingMap map[string][]string
+
+// ButtonMap is a map of action strings to actual button state.
+type ButtonMap map[string]*Button
+
+// Device represents an input device and must be created using NewDevice.
+type Device struct {
+	bindings BindingMap
+	previous ButtonMap
+	current  ButtonMap
 }
 
 // Registered devices.
@@ -127,14 +127,14 @@ func Update() {
 		*Mouse.previous[name] = *button
 	}
 
-	for name, mask := range mouseMasks {
+	for name, button := range Mouse.current {
 		var value float64
-		if mouseState&mask != 0 {
+		if mouseState&button.mask != 0 {
 			// If the button is down we set value to 1
 			value = 1
 		}
 
-		setButtonState(Mouse.current[name], Mouse.previous[name], value, now)
+		setButtonState(&Mouse.current[name].Button, &Mouse.previous[name].Button, value, now)
 	}
 
 	// If the current keyboard state's length is less than SDL is reporting
