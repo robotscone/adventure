@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/robotscone/adventure/internal/gfx"
 	"github.com/robotscone/adventure/internal/linalg"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -110,10 +111,16 @@ func setButtonState(current, previous *Button, value float64, now time.Time) {
 	}
 }
 
-func Update() {
+func Update(renderer *gfx.Renderer) {
 	now := time.Now()
 	mouseX, mouseY, mouseState := sdl.GetMouseState()
 	keyboardState := sdl.GetKeyboardState()
+
+	if renderer != nil {
+		logicalMouseX, logicalMouseY := renderer.RenderWindowToLogical(int(mouseX), int(mouseY))
+
+		mouseX, mouseY = int32(logicalMouseX), int32(logicalMouseY)
+	}
 
 	mousePreviousX := Mouse.Position.X
 	mousePreviousY := Mouse.Position.Y
