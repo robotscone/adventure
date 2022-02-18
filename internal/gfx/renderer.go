@@ -25,28 +25,17 @@ const (
 	ScaleAnisotropic ScaleQuality = "best"
 )
 
-type Renderer struct {
-	*sdl.Renderer
-	pixelFormat uint32
-}
+type Renderer struct{ *sdl.Renderer }
 
 func NewRenderer(window *sdl.Window) (*Renderer, error) {
-	pixelFormat, err := window.GetPixelFormat()
-	if err != nil {
-		return nil, err
-	}
-
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		return nil, err
 	}
 
-	r := &Renderer{
-		Renderer:    renderer,
-		pixelFormat: pixelFormat,
-	}
+	renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
 
-	return r, nil
+	return &Renderer{Renderer: renderer}, nil
 }
 
 func (rn *Renderer) NewTexture(imagePath string, scaleQuality ScaleQuality) *Texture {
@@ -68,27 +57,30 @@ func (rn *Renderer) NewTexture(imagePath string, scaleQuality ScaleQuality) *Tex
 
 	bounds := img.Bounds()
 
-	texture, err := rn.CreateTexture(rn.pixelFormat, sdl.TEXTUREACCESS_TARGET, int32(bounds.Max.X), int32(bounds.Max.Y))
+	texture, err := rn.CreateTexture(uint32(sdl.PIXELFORMAT_RGBA32), sdl.TEXTUREACCESS_STATIC, int32(bounds.Max.X), int32(bounds.Max.Y))
 	if err != nil {
 		panic(err)
 	}
 
 	texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 
-	rn.SetRenderTarget(texture)
-	rn.SetDrawColor(255, 255, 255, 0)
-	rn.Clear()
+	bpp := 4
+	pitch := bounds.Max.X * bpp
+	pixels := make([]byte, pitch*bounds.Max.Y)
 
 	for y := 0; y < bounds.Max.Y; y++ {
 		for x := 0; x < bounds.Max.X; x++ {
 			r, g, b, a := img.At(x, y).RGBA()
+			offset := y*pitch + x*bpp
 
-			rn.SetDrawColor(uint8(r), uint8(g), uint8(b), uint8(a))
-			rn.DrawPoint(int32(x), int32(y))
+			pixels[offset+0] = byte(r)
+			pixels[offset+1] = byte(g)
+			pixels[offset+2] = byte(b)
+			pixels[offset+3] = byte(a)
 		}
 	}
 
-	rn.SetRenderTarget(nil)
+	texture.Update(nil, pixels, pitch)
 
 	t := &Texture{
 		renderer: rn.Renderer,
