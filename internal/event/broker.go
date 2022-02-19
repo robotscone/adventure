@@ -37,7 +37,7 @@ func (b *Broker) Queue(event Event) {
 	b.queue = append(b.queue, event)
 }
 
-func (b *Broker) Process() {
+func (b *Broker) Flush() {
 	for _, event := range b.queue {
 		b.fire(event)
 	}
