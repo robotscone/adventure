@@ -19,7 +19,7 @@ type State interface {
 	Resume(controller Controller, data *Data)
 	Input(controller Controller, data *Data)
 	Update(controller Controller, data *Data)
-	Render()
+	Draw()
 	Pause()
 	Exit()
 }
@@ -31,6 +31,6 @@ func (*Base) Enter(controller Controller, data *Data, message interface{}) {}
 func (*Base) Resume(controller Controller, data *Data)                     {}
 func (*Base) Input(controller Controller, data *Data)                      {}
 func (*Base) Update(controller Controller, data *Data)                     {}
-func (*Base) Render()                                                      {}
+func (*Base) Draw()                                                        {}
 func (*Base) Pause()                                                       {}
 func (*Base) Exit()                                                        {}

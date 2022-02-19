@@ -89,8 +89,8 @@ func (f *FSM) Update() {
 	f.stack[len(f.stack)-1].Update(f, f.data)
 }
 
-func (f *FSM) Render() {
+func (f *FSM) Draw() {
 	for i := 0; i < len(f.stack); i++ {
-		f.stack[i].Render()
+		f.stack[i].Draw()
 	}
 }
