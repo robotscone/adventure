@@ -4,6 +4,14 @@ import (
 	"time"
 )
 
+type Direction byte
+
+const (
+	Forward Direction = iota
+	Backward
+	Opposite
+)
+
 type TweenHook func(t *Tween)
 
 type Tween struct {
@@ -15,7 +23,10 @@ type Tween struct {
 	Value         float64
 	isReversed    bool
 	isInverted    bool
+	isStarted     bool
 	isFinished    bool
+	isPaused      bool
+	startedFuncs  []TweenHook
 	finishedFuncs []TweenHook
 }
 
@@ -37,12 +48,29 @@ func (t *Tween) Reset() {
 	t.Value = t.From
 	t.isReversed = false
 	t.isInverted = false
+	t.isStarted = false
 	t.isFinished = false
 }
 
+func (t *Tween) Play() {
+	t.isPaused = false
+}
+
+func (t *Tween) Pause() {
+	t.isPaused = true
+}
+
 func (t *Tween) Update(delta float64) {
-	if t.isFinished {
+	if t.isPaused || t.isFinished {
 		return
+	}
+
+	if !t.isStarted {
+		t.isStarted = true
+
+		for _, f := range t.startedFuncs {
+			f(t)
+		}
 	}
 
 	if t.isReversed {
@@ -68,13 +96,52 @@ func (t *Tween) Update(delta float64) {
 	}
 
 	if t.isFinished {
+		t.isStarted = false
+
 		for _, f := range t.finishedFuncs {
 			f(t)
 		}
 	}
 }
 
-func (t *Tween) Invert(value bool) {
+func (t *Tween) Direction() Direction {
+	if !t.isInverted && !t.isReversed || t.isInverted && t.isReversed {
+		return Forward
+	}
+
+	return Backward
+}
+
+func (t *Tween) SetDirection(dir Direction) {
+	if dir == Opposite {
+		if t.Direction() == Forward {
+			dir = Backward
+		} else {
+			dir = Forward
+		}
+	}
+
+	switch dir {
+	case Forward:
+		if t.Direction() == Backward {
+			if t.isFinished {
+				t.setInverted(false)
+			} else {
+				t.setReversed(!t.isReversed)
+			}
+		}
+	case Backward:
+		if t.Direction() == Forward {
+			if t.isFinished {
+				t.setInverted(true)
+			} else {
+				t.setReversed(!t.isReversed)
+			}
+		}
+	}
+}
+
+func (t *Tween) setInverted(value bool) {
 	// If the inversion operation actually changes anything then we need
 	// to recalculate the elapsed time to make sure the value doesn't
 	// suddenly jump to a completely different one
@@ -83,34 +150,31 @@ func (t *Tween) Invert(value bool) {
 	}
 
 	t.isInverted = value
-	t.isFinished = false
+	t.isReversed = false
 
-	t.Reverse(false)
-}
-
-func (t *Tween) Reverse(value bool) {
-	t.isReversed = value
-	t.isFinished = false
-}
-
-func (t *Tween) InvertOrReverse(value bool) {
 	if t.isFinished {
-		t.Invert(value)
-	} else {
-		t.Reverse(!t.isReversed)
+		t.isFinished = false
 	}
 }
 
-func (t *Tween) IsForward() bool {
-	return !t.isInverted && !t.isReversed || t.isInverted && t.isReversed
+func (t *Tween) setReversed(value bool) {
+	t.isReversed = value
+
+	if t.isFinished {
+		t.isFinished = false
+	}
 }
 
-func (t *Tween) IsBackward() bool {
-	return !t.IsForward()
+func (t *Tween) Duration() time.Duration {
+	return time.Duration(t.duration * float64(time.Second))
 }
 
 func (t *Tween) SetDuration(duration time.Duration) {
 	t.duration = duration.Seconds()
+}
+
+func (t *Tween) Easing() Func {
+	return t.easing
 }
 
 func (t *Tween) SetEasing(easing Func) {
@@ -119,6 +183,10 @@ func (t *Tween) SetEasing(easing Func) {
 	}
 
 	t.easing = easing
+}
+
+func (t *Tween) OnStarted(f TweenHook) {
+	t.startedFuncs = append(t.startedFuncs, f)
 }
 
 func (t *Tween) OnFinished(f TweenHook) {
