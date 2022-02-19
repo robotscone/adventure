@@ -8,25 +8,34 @@ import (
 
 type Sprite struct {
 	*Texture
+	src        sdl.Rect
 	dst        sdl.FRect
 	animation  *Animation
 	animations map[string]*Animation
 }
 
-func NewSprite(texture *Texture) *Sprite {
-	var animation Animation
-
-	animation.AddFrame(0, 0, texture.width, texture.height, FlipNone)
-
-	return &Sprite{
+func NewSprite(texture *Texture, x, y, width, height int) *Sprite {
+	s := &Sprite{
 		Texture: texture,
 		dst: sdl.FRect{
 			W: float32(texture.width),
 			H: float32(texture.height),
 		},
-		animation:  &animation,
 		animations: make(map[string]*Animation),
 	}
+
+	s.Crop(x, y, width, height)
+
+	return s
+}
+
+func (s *Sprite) Crop(x, y, width, height int) {
+	s.src.X = int32(x)
+	s.src.Y = int32(y)
+	s.src.W = int32(width)
+	s.src.H = int32(height)
+
+	s.animation = nil
 }
 
 func (s *Sprite) RegisterAnimation(name string, animation Animation) {
@@ -38,8 +47,8 @@ func (s *Sprite) RegisterAnimation(name string, animation Animation) {
 }
 
 func (s *Sprite) SetAnimation(name string) {
-	animation, ok := s.animations[name]
-	if !ok {
+	animation := s.animations[name]
+	if animation == nil {
 		fmt.Printf("attempted to set unknown animation %q\n", name)
 
 		return
@@ -55,14 +64,24 @@ func (s *Sprite) SetAnimation(name string) {
 }
 
 func (s *Sprite) Update(delta float64) {
-	s.animation.Update(delta)
+	if s.animation != nil {
+		s.animation.Update(delta)
+	}
 }
 
 func (s *Sprite) Draw(x, y float64) {
 	s.dst.X = float32(x)
 	s.dst.Y = float32(y)
-	s.dst.W = float32(s.animation.frame.src.W)
-	s.dst.H = float32(s.animation.frame.src.H)
 
-	s.Texture.Draw(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
+	if s.animation != nil {
+		s.dst.W = float32(s.animation.frame.src.W)
+		s.dst.H = float32(s.animation.frame.src.H)
+
+		s.Texture.Draw(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
+	} else {
+		s.dst.W = float32(s.src.W)
+		s.dst.H = float32(s.src.H)
+
+		s.Texture.Draw(&s.src, &s.dst, FlipNone)
+	}
 }
