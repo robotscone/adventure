@@ -7,30 +7,42 @@ const (
 	KindVScrollbarThumb WidgetKind = "VScrollbarThumb"
 )
 
-func (ui *IMGUI) HScrollbar(x, y, width, height, thumbWidth int, min, max float64, value *float64) bool {
-	val := *value - min
-	normMax := max - min
+func (ui *IMGUI) HScrollbar(x, y, width, height, thumbWidth int, min, max float64, input *float64) bool {
+	anchor := Left
+	if max < min {
+		anchor = Right
+		min, max = max, min
+	}
 
-	if val < 0.0 {
-		val = 0.0
-	} else if val > normMax {
-		val = normMax
+	value := *input - min
+	rng := max - min
+
+	if value < 0.0 {
+		value = 0.0
+	} else if value > rng {
+		value = rng
 	}
 
 	bar := ui.newWidget(KindHScrollbar, x, y, width, height)
 
 	ui.doButtonLogic(bar)
 
-	thumbWidthHalf := int(float64(thumbWidth) / 2)
-	realX := x + thumbWidthHalf
+	thumbHalf := int(float64(thumbWidth) / 2)
+	x += thumbHalf
+	width -= thumbWidth
 
-	maxThumbX := width - thumbWidth
-	thumbX := realX + int(float64(maxThumbX)*(val/normMax)) - thumbWidthHalf
+	position := int(float64(width) * (value / rng))
+	thumbPosition := x
+	if anchor == Left {
+		thumbPosition += position
+	} else {
+		thumbPosition += width - position
+	}
 
-	thumb := ui.newWidget(KindHScrollbarThumb, thumbX, y, thumbWidth, height)
+	thumb := ui.newWidget(KindHScrollbarThumb, thumbPosition-thumbHalf, y, thumbWidth, height)
 
 	if ui.doButtonLogic(thumb) {
-		ui.offset.x = ui.Input.Mouse.X - thumbX - thumbWidthHalf
+		ui.offset.x = ui.Input.Mouse.X - thumbPosition
 	}
 
 	ui.IsHot = ui.Active == bar || ui.Active == thumb
@@ -69,19 +81,23 @@ func (ui *IMGUI) HScrollbar(x, y, width, height, thumbWidth int, min, max float6
 	ui.draw(thumb, thumbDrawCmd)
 
 	if ui.IsActive {
-		newX := ui.Input.Mouse.X - realX
+		newPosition := ui.Input.Mouse.X - x
 		if ui.Active == thumb {
-			newX -= ui.offset.x
+			newPosition -= ui.offset.x
 		}
-		if newX < 0 {
-			newX = 0
-		} else if newX > maxThumbX {
-			newX = maxThumbX
+		if newPosition < 0 {
+			newPosition = 0
+		} else if newPosition > width {
+			newPosition = width
 		}
 
-		newValue := float64(newX) * normMax / float64(maxThumbX)
-		if newValue != val {
-			*value = newValue + min
+		newValue := rng * (float64(newPosition) / float64(width))
+		if anchor == Right {
+			newValue = rng - newValue
+		}
+
+		if newValue != value {
+			*input = min + newValue
 
 			return true
 		}
@@ -90,30 +106,42 @@ func (ui *IMGUI) HScrollbar(x, y, width, height, thumbWidth int, min, max float6
 	return false
 }
 
-func (ui *IMGUI) VScrollbar(x, y, width, height, thumbHeight int, min, max float64, value *float64) bool {
-	val := *value - min
-	normMax := max - min
+func (ui *IMGUI) VScrollbar(x, y, width, height, thumbHeight int, min, max float64, input *float64) bool {
+	anchor := Top
+	if max < min {
+		anchor = Bottom
+		min, max = max, min
+	}
 
-	if val < 0.0 {
-		val = 0.0
-	} else if val > normMax {
-		val = normMax
+	value := *input - min
+	rng := max - min
+
+	if value < 0.0 {
+		value = 0.0
+	} else if value > rng {
+		value = rng
 	}
 
 	bar := ui.newWidget(KindVScrollbar, x, y, width, height)
 
 	ui.doButtonLogic(bar)
 
-	thumbHeightHalf := int(float64(thumbHeight) / 2)
-	realY := y + thumbHeightHalf
+	thumbHalf := int(float64(thumbHeight) / 2)
+	y += thumbHalf
+	height -= thumbHeight
 
-	maxThumbY := height - thumbHeight
-	thumbY := realY + int(float64(maxThumbY)*(val/normMax)) - thumbHeightHalf
+	position := int(float64(height) * (value / rng))
+	thumbPosition := y
+	if anchor == Top {
+		thumbPosition += position
+	} else {
+		thumbPosition += height - position
+	}
 
-	thumb := ui.newWidget(KindVScrollbarThumb, x, thumbY, width, thumbHeight)
+	thumb := ui.newWidget(KindVScrollbarThumb, x, thumbPosition-thumbHalf, width, thumbHeight)
 
 	if ui.doButtonLogic(thumb) {
-		ui.offset.y = ui.Input.Mouse.Y - thumbY - thumbHeightHalf
+		ui.offset.y = ui.Input.Mouse.Y - thumbPosition
 	}
 
 	ui.IsHot = ui.Active == bar || ui.Active == thumb
@@ -152,19 +180,23 @@ func (ui *IMGUI) VScrollbar(x, y, width, height, thumbHeight int, min, max float
 	ui.draw(thumb, thumbDrawCmd)
 
 	if ui.IsActive {
-		newY := ui.Input.Mouse.Y - realY
+		newPosition := ui.Input.Mouse.Y - y
 		if ui.Active == thumb {
-			newY -= ui.offset.y
+			newPosition -= ui.offset.y
 		}
-		if newY < 0 {
-			newY = 0
-		} else if newY > maxThumbY {
-			newY = maxThumbY
+		if newPosition < 0 {
+			newPosition = 0
+		} else if newPosition > height {
+			newPosition = height
 		}
 
-		newValue := float64(newY) * normMax / float64(maxThumbY)
-		if newValue != val {
-			*value = newValue + min
+		newValue := rng * (float64(newPosition) / float64(height))
+		if anchor == Bottom {
+			newValue = rng - newValue
+		}
+
+		if newValue != value {
+			*input = min + newValue
 
 			return true
 		}
