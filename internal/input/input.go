@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -39,6 +40,15 @@ var Mouse = struct {
 	previous: newMouseButtons(),
 }
 
+type controller struct {
+	id     sdl.JoystickID
+	device *sdl.GameController
+	//current  []Button
+	//previous []Button
+}
+
+var controllers []*controller
+
 var keyboard struct {
 	current  []Button
 	previous []Button
@@ -52,13 +62,32 @@ type ButtonMap map[string]*Button
 
 // Device represents an input device and must be created using NewDevice.
 type Device struct {
-	bindings BindingMap
-	previous ButtonMap
-	current  ButtonMap
+	bindings   BindingMap
+	previous   ButtonMap
+	current    ButtonMap
+	controller *controller
 }
 
 // Registered devices.
 var devices []*Device
+
+func Init() {
+	fmt.Print("running input.init()\n")
+	fmt.Print(sdl.NumJoysticks(), "\n")
+	for i := 0; i < sdl.NumJoysticks(); i++ {
+		if !sdl.IsGameController(i) {
+			continue
+		}
+
+		controller := sdl.GameControllerOpen(i)
+		if controller == nil {
+			continue
+		}
+
+		fmt.Print("Init success, passing to AddController()\n")
+		AddController(controller.Joystick().InstanceID())
+	}
+}
 
 func NewDevice(bindings BindingMap) *Device {
 	if bindings == nil {
@@ -79,6 +108,28 @@ func NewDevice(bindings BindingMap) *Device {
 	devices = append(devices, device)
 
 	return device
+}
+
+func AddController(id sdl.JoystickID) {
+	device := sdl.GameControllerFromInstanceID(id)
+	if device == nil {
+		return
+	}
+
+	c := &controller{
+		id:     id,
+		device: device,
+	}
+
+	controllers = append(controllers, c)
+
+	for _, device := range devices {
+		if device.controller == nil {
+			device.controller = c
+			fmt.Print("Assigned controller.")
+			break
+		}
+	}
 }
 
 func (d *Device) Get(action string) *Button {
@@ -108,6 +159,16 @@ func setButtonState(current, previous *Button, value float64, now time.Time) {
 	// down duration value
 	if current.ReleasedAt.Before(current.PressedAt) {
 		current.DownDuration = time.Since(current.PressedAt)
+	}
+}
+
+func GetControllerState() {
+	for _, controller := range controllers {
+		for i := 0; i < 15; i++ {
+			if controller.device.Button(sdl.GameControllerButton(i)) != 0 {
+				fmt.Print(sdl.GameControllerGetStringForButton(sdl.GameControllerButton(i)), "\n")
+			}
+		}
 	}
 }
 
