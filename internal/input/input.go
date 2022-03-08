@@ -41,10 +41,10 @@ var Mouse = struct {
 }
 
 type controller struct {
-	id     sdl.JoystickID
-	device *sdl.GameController
-	//current  []Button
-	//previous []Button
+	id sdl.JoystickID
+	*sdl.GameController
+	current  map[string]*controllerButton
+	previous map[string]*controllerButton
 }
 
 var controllers []*controller
@@ -72,8 +72,7 @@ type Device struct {
 var devices []*Device
 
 func Init() {
-	fmt.Print("running input.init()\n")
-	fmt.Print(sdl.NumJoysticks(), "\n")
+
 	for i := 0; i < sdl.NumJoysticks(); i++ {
 		if !sdl.IsGameController(i) {
 			continue
@@ -84,7 +83,6 @@ func Init() {
 			continue
 		}
 
-		fmt.Print("Init success, passing to AddController()\n")
 		AddController(controller.Joystick().InstanceID())
 	}
 }
@@ -117,16 +115,23 @@ func AddController(id sdl.JoystickID) {
 	}
 
 	c := &controller{
-		id:     id,
-		device: device,
+		id:             id,
+		GameController: device,
+		current:        newControllerButtons(),
+		previous:       newControllerButtons(),
 	}
 
 	controllers = append(controllers, c)
 
-	for _, device := range devices {
+	for devicenumber, device := range devices {
+		// Device #0 is the mouse, skip over this one.
+		if devicenumber == 0 {
+			continue
+		}
+
 		if device.controller == nil {
 			device.controller = c
-			fmt.Print("Assigned controller.")
+			fmt.Print("Bindings: \n", device.bindings)
 			break
 		}
 	}
@@ -159,16 +164,6 @@ func setButtonState(current, previous *Button, value float64, now time.Time) {
 	// down duration value
 	if current.ReleasedAt.Before(current.PressedAt) {
 		current.DownDuration = time.Since(current.PressedAt)
-	}
-}
-
-func GetControllerState() {
-	for _, controller := range controllers {
-		for i := 0; i < 15; i++ {
-			if controller.device.Button(sdl.GameControllerButton(i)) != 0 {
-				fmt.Print(sdl.GameControllerGetStringForButton(sdl.GameControllerButton(i)), "\n")
-			}
-		}
 	}
 }
 
@@ -205,6 +200,19 @@ func Update(renderer *gfx.Renderer) {
 		setButtonState(&Mouse.current[name].Button, &Mouse.previous[name].Button, value, now)
 	}
 
+	// You can use this to loop over each of the controller buttons, and update them.
+	for _, controller := range controllers {
+		for buttonName, buttonStruct := range controller.current {
+			var value float64
+
+			if controller.Button(sdl.GameControllerButton(buttonStruct.code)) != 0 {
+				value = 1
+			}
+
+			setButtonState(&controller.current[buttonName].Button, &controller.previous[buttonName].Button, value, now)
+		}
+	}
+
 	// If the current keyboard state's length is less than SDL is reporting
 	// then we just re-make the slice and populate with blank button states
 	if len(keyboard.current) < len(keyboardState) {
@@ -235,6 +243,7 @@ func Update(renderer *gfx.Renderer) {
 			current.Value = 0
 
 			for _, name := range buttons {
+
 				switch {
 				case strings.HasPrefix(name, "mouse:"):
 					parts := strings.Split(name, ":")
@@ -252,6 +261,37 @@ func Update(renderer *gfx.Renderer) {
 					if button := &keyboard.current[code]; button.Value != 0 {
 						current.Value = button.Value
 					}
+				case strings.HasPrefix(name, "gamepad:"):
+					parts := strings.Split(name, ":")
+					key := strings.Join(parts[1:], ":")
+
+					button, ok := device.controller.current[key]
+					if !ok {
+						fmt.Print("NOT OK! \n")
+						continue
+					}
+					if button.Value != 0 {
+						current.Value = button.Value
+					}
+
+				default:
+
+					/*
+						if device.controller == nil {
+							continue
+						}
+
+						button, ok := device.controller.current[name]
+						if !ok {
+							fmt.Print("NOT OK! \n")
+							continue
+						}
+
+						if device.controller.Button(sdl.GameControllerButton(button.code)) != 0 {
+							fmt.Print("set to 1 \n")
+							current.Value = 1
+						}
+					*/
 				}
 			}
 
