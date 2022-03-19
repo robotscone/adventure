@@ -4,7 +4,9 @@ import "github.com/veandco/go-sdl2/sdl"
 
 type controllerButton struct {
 	Button
-	code int
+	code       int
+	isAxis     bool
+	isNegative bool
 }
 
 func newControllerButtons() map[string]*controllerButton {
@@ -24,5 +26,8 @@ func newControllerButtons() map[string]*controllerButton {
 		"dpad:down":      {code: sdl.CONTROLLER_BUTTON_DPAD_DOWN},
 		"dpad:left":      {code: sdl.CONTROLLER_BUTTON_DPAD_LEFT},
 		"dpad:right":     {code: sdl.CONTROLLER_BUTTON_DPAD_RIGHT},
+		"lstick:left":    {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true, isNegative: true},
+		"lstick:right":   {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true},
+		"joystick:lefty": {code: sdl.CONTROLLER_AXIS_LEFTY, isAxis: true},
 	}
 }

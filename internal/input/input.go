@@ -2,6 +2,7 @@ package input
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -43,6 +44,7 @@ var Mouse = struct {
 type controller struct {
 	id sdl.JoystickID
 	*sdl.GameController
+	deadZone float64
 	current  map[string]*controllerButton
 	previous map[string]*controllerButton
 }
@@ -117,6 +119,7 @@ func AddController(id sdl.JoystickID) {
 	c := &controller{
 		id:             id,
 		GameController: device,
+		deadZone:       1000,
 		current:        newControllerButtons(),
 		previous:       newControllerButtons(),
 	}
@@ -202,14 +205,24 @@ func Update(renderer *gfx.Renderer) {
 
 	// You can use this to loop over each of the controller buttons, and update them.
 	for _, controller := range controllers {
-		for buttonName, buttonStruct := range controller.current {
+		for name, button := range controller.current {
 			var value float64
+			if button.isAxis {
+				value = float64(controller.Axis(sdl.GameControllerAxis(button.code)))
 
-			if controller.Button(sdl.GameControllerButton(buttonStruct.code)) != 0 {
+				switch {
+				case !button.isNegative && value > controller.deadZone:
+					value /= math.MaxInt16
+				case button.isNegative && value < -controller.deadZone:
+					value /= math.MinInt16
+				default:
+					value = 0
+				}
+			} else if controller.Button(sdl.GameControllerButton(button.code)) != 0 {
 				value = 1
 			}
 
-			setButtonState(&controller.current[buttonName].Button, &controller.previous[buttonName].Button, value, now)
+			setButtonState(&controller.current[name].Button, &controller.previous[name].Button, value, now)
 		}
 	}
 
@@ -272,26 +285,10 @@ func Update(renderer *gfx.Renderer) {
 					}
 					if button.Value != 0 {
 						current.Value = button.Value
+						fmt.Print(key, " value: ", button.Value, "\n")
 					}
 
 				default:
-
-					/*
-						if device.controller == nil {
-							continue
-						}
-
-						button, ok := device.controller.current[name]
-						if !ok {
-							fmt.Print("NOT OK! \n")
-							continue
-						}
-
-						if device.controller.Button(sdl.GameControllerButton(button.code)) != 0 {
-							fmt.Print("set to 1 \n")
-							current.Value = 1
-						}
-					*/
 				}
 			}
 
