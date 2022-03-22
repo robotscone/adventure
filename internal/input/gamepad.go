@@ -1,12 +1,18 @@
 package input
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 type controllerButton struct {
 	Button
 	code       int
 	isAxis     bool
 	isNegative bool
+}
+
+func (button *Button) setButtonDeadZone(deadZoneValue float64) {
+	button.deadZone = deadZoneValue
 }
 
 func newControllerButtons() map[string]*controllerButton {
@@ -26,8 +32,13 @@ func newControllerButtons() map[string]*controllerButton {
 		"dpad:down":      {code: sdl.CONTROLLER_BUTTON_DPAD_DOWN},
 		"dpad:left":      {code: sdl.CONTROLLER_BUTTON_DPAD_LEFT},
 		"dpad:right":     {code: sdl.CONTROLLER_BUTTON_DPAD_RIGHT},
-		"lstick:left":    {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true, isNegative: true},
-		"lstick:right":   {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true},
-		"joystick:lefty": {code: sdl.CONTROLLER_AXIS_LEFTY, isAxis: true},
+		"lstick:left":    {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true, isNegative: true, Button: Button{deadZone: 2000}},
+		"lstick:right":   {code: sdl.CONTROLLER_AXIS_LEFTX, isAxis: true, Button: Button{deadZone: 2000}},
+		"lstick:up":      {code: sdl.CONTROLLER_AXIS_LEFTY, isAxis: true, isNegative: true, Button: Button{deadZone: 2000}},
+		"lstick:down":    {code: sdl.CONTROLLER_AXIS_LEFTY, isAxis: true, Button: Button{deadZone: 2000}},
+		"rstick:left":    {code: sdl.CONTROLLER_AXIS_RIGHTX, isAxis: true, isNegative: true, Button: Button{deadZone: 2000}},
+		"rstick:right":   {code: sdl.CONTROLLER_AXIS_RIGHTX, isAxis: true, Button: Button{deadZone: 2000}},
+		"rstick:up":      {code: sdl.CONTROLLER_AXIS_RIGHTY, isAxis: true, isNegative: true, Button: Button{deadZone: 2000}},
+		"rstick:down":    {code: sdl.CONTROLLER_AXIS_RIGHTY, isAxis: true, Button: Button{deadZone: 2000}},
 	}
 }

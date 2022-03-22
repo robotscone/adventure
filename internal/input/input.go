@@ -15,6 +15,7 @@ var unmappedButton = &Button{}
 
 type Button struct {
 	Value        float64
+	deadZone     float64
 	IsDown       bool
 	IsPressed    bool
 	IsReleased   bool
@@ -44,7 +45,6 @@ var Mouse = struct {
 type controller struct {
 	id sdl.JoystickID
 	*sdl.GameController
-	deadZone float64
 	current  map[string]*controllerButton
 	previous map[string]*controllerButton
 }
@@ -119,7 +119,6 @@ func AddController(id sdl.JoystickID) {
 	c := &controller{
 		id:             id,
 		GameController: device,
-		deadZone:       1000,
 		current:        newControllerButtons(),
 		previous:       newControllerButtons(),
 	}
@@ -211,10 +210,10 @@ func Update(renderer *gfx.Renderer) {
 				value = float64(controller.Axis(sdl.GameControllerAxis(button.code)))
 
 				switch {
-				case !button.isNegative && value > controller.deadZone:
-					value /= math.MaxInt16
-				case button.isNegative && value < -controller.deadZone:
-					value /= math.MinInt16
+				case !button.isNegative && value > button.deadZone:
+					value = (value - button.deadZone) / (math.MaxInt16 - button.deadZone)
+				case button.isNegative && value < -button.deadZone:
+					value = (value + button.deadZone) / (math.MinInt16 + button.deadZone)
 				default:
 					value = 0
 				}
