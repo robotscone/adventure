@@ -277,6 +277,10 @@ func Update(renderer *gfx.Renderer) {
 					parts := strings.Split(name, ":")
 					key := strings.Join(parts[1:], ":")
 
+					if device.controller == nil {
+						continue
+					}
+
 					button, ok := device.controller.current[key]
 					if !ok {
 						fmt.Print("NOT OK! \n")
