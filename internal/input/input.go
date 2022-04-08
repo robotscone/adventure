@@ -217,6 +217,7 @@ func Update(renderer *gfx.Renderer) {
 				default:
 					value = 0
 				}
+
 			} else if controller.Button(sdl.GameControllerButton(button.code)) != 0 {
 				value = 1
 			}
