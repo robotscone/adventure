@@ -1,7 +1,6 @@
 package input
 
 import (
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -133,7 +132,6 @@ func AddController(id sdl.JoystickID) {
 
 		if device.controller == nil {
 			device.controller = c
-			fmt.Print("Bindings: \n", device.bindings)
 			break
 		}
 	}
@@ -202,7 +200,6 @@ func Update(renderer *gfx.Renderer) {
 		setButtonState(&Mouse.current[name].Button, &Mouse.previous[name].Button, value, now)
 	}
 
-	// You can use this to loop over each of the controller buttons, and update them.
 	for _, controller := range controllers {
 		for name, button := range controller.current {
 			var value float64
@@ -255,7 +252,6 @@ func Update(renderer *gfx.Renderer) {
 			current.Value = 0
 
 			for _, name := range buttons {
-
 				switch {
 				case strings.HasPrefix(name, "mouse:"):
 					parts := strings.Split(name, ":")
@@ -283,15 +279,11 @@ func Update(renderer *gfx.Renderer) {
 
 					button, ok := device.controller.current[key]
 					if !ok {
-						fmt.Print("NOT OK! \n")
 						continue
 					}
 					if button.Value != 0 {
 						current.Value = button.Value
-						fmt.Print(key, " value: ", button.Value, "\n")
 					}
-
-				default:
 				}
 			}
 

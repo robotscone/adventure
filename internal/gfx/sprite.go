@@ -14,6 +14,10 @@ type Sprite struct {
 	animations map[string]*Animation
 }
 
+func (s *Sprite) SetFPS(fps float64) {
+	s.animation.SetFPS(fps)
+}
+
 func NewSprite(texture *Texture, x, y, width, height int) *Sprite {
 	s := &Sprite{
 		Texture: texture,
