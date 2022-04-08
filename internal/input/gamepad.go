@@ -28,6 +28,8 @@ func newControllerButtons() map[string]*controllerButton {
 		"stick:right":    {code: sdl.CONTROLLER_BUTTON_RIGHTSTICK},
 		"shoulder:left":  {code: sdl.CONTROLLER_BUTTON_LEFTSHOULDER},
 		"shoulder:right": {code: sdl.CONTROLLER_BUTTON_RIGHTSHOULDER},
+		"trigger:left":   {code: sdl.CONTROLLER_AXIS_TRIGGERLEFT, isAxis: true, Button: Button{deadZone: 200}},
+		"trigger:right":  {code: sdl.CONTROLLER_AXIS_TRIGGERRIGHT, isAxis: true, Button: Button{deadZone: 200}},
 		"dpad:up":        {code: sdl.CONTROLLER_BUTTON_DPAD_UP},
 		"dpad:down":      {code: sdl.CONTROLLER_BUTTON_DPAD_DOWN},
 		"dpad:left":      {code: sdl.CONTROLLER_BUTTON_DPAD_LEFT},
