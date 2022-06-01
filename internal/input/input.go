@@ -72,22 +72,6 @@ type Device struct {
 // Registered devices.
 var devices []*Device
 
-func Init() {
-
-	for i := 0; i < sdl.NumJoysticks(); i++ {
-		if !sdl.IsGameController(i) {
-			continue
-		}
-
-		controller := sdl.GameControllerOpen(i)
-		if controller == nil {
-			continue
-		}
-
-		AddController(controller.Joystick().InstanceID())
-	}
-}
-
 func NewDevice(bindings BindingMap) *Device {
 	if bindings == nil {
 		bindings = make(BindingMap)
@@ -135,6 +119,26 @@ func AddController(id sdl.JoystickID) {
 			break
 		}
 	}
+}
+
+func RemoveController(id sdl.JoystickID) {
+	filtered := controllers[:0]
+	for _, controller := range controllers {
+		if controller.id == id {
+			for _, device := range devices {
+				if device.controller == controller {
+					device.controller = nil
+
+					break
+				}
+			}
+
+			continue
+		}
+
+		filtered = append(filtered, controller)
+	}
+	controllers = filtered
 }
 
 func (d *Device) Get(action string) *Button {
