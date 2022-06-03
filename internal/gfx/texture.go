@@ -7,11 +7,22 @@ import (
 )
 
 type Texture struct {
-	renderer *sdl.Renderer
+	renderer *Renderer
 	texture  *sdl.Texture
 	width    int
 	height   int
-	dst      sdl.FRect
+}
+
+func (t *Texture) Renderer() *Renderer {
+	return t.renderer
+}
+
+func (t *Texture) Width() int {
+	return t.width
+}
+
+func (t *Texture) Height() int {
+	return t.height
 }
 
 func (t *Texture) SetAlphaMod(a float64) {
@@ -22,7 +33,51 @@ func (t *Texture) SetColorMod(r, g, b float64) {
 	t.texture.SetColorMod(uint8(math.MaxUint8*r), uint8(math.MaxUint8*g), uint8(math.MaxUint8*b))
 }
 
-func (t *Texture) Draw(src *sdl.Rect, dst *sdl.FRect, flip Flip) {
+func (t *Texture) DrawRect(src *Rect, dst *FRect, flip Flip) {
+	t.Draw(src.X, src.Y, src.Width, src.Height, dst.X, dst.Y, dst.Width, dst.Height, flip)
+}
+
+func (t *Texture) Draw(srcX, srcY, srcWidth, srcHeight int, dstX, dstY, dstWidth, dstHeight float64, flip Flip) {
+	src := sdl.Rect{
+		X: int32(srcX),
+		Y: int32(srcY),
+		W: int32(srcWidth),
+		H: int32(srcHeight),
+	}
+
+	dst := sdl.FRect{
+		X: float32(dstX),
+		Y: float32(dstY),
+		W: float32(dstWidth),
+		H: float32(dstHeight),
+	}
+
+	t.draw(&src, &dst, flip)
+}
+
+func (t *Texture) DrawAt(dstX, dstY float64, flip Flip) {
+	dst := sdl.FRect{
+		X: float32(dstX),
+		Y: float32(dstY),
+		W: float32(t.width),
+		H: float32(t.height),
+	}
+
+	t.draw(nil, &dst, flip)
+}
+
+func (t *Texture) DrawStretchedAt(dstX, dstY, dstWidth, dstHeight float64, flip Flip) {
+	dst := sdl.FRect{
+		X: float32(dstX),
+		Y: float32(dstY),
+		W: float32(dstWidth),
+		H: float32(dstHeight),
+	}
+
+	t.draw(nil, &dst, flip)
+}
+
+func (t *Texture) draw(src *sdl.Rect, dst *sdl.FRect, flip Flip) {
 	var rendererFlip sdl.RendererFlip
 	switch flip {
 	case FlipHorizontal:
@@ -51,12 +106,10 @@ func (t *Texture) Draw(src *sdl.Rect, dst *sdl.FRect, flip Flip) {
 	// The problem with that approach is that movement of sprites in the world
 	// becomes noticeably jittery/jagged, which is why we're taking this
 	// approach instead
-	t.dst.X = dst.X + 0.01
-	t.dst.Y = dst.Y + 0.01
-	t.dst.W = dst.W
-	t.dst.H = dst.H
+	dst.X += 0.01
+	dst.Y += 0.01
 
-	t.renderer.CopyExF(t.texture, src, &t.dst, 0.0, nil, rendererFlip)
+	t.renderer.CopyExF(t.texture, src, dst, 0.0, nil, rendererFlip)
 }
 
 func (t *Texture) Destroy() {
