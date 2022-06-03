@@ -2,8 +2,6 @@ package gfx
 
 import (
 	"time"
-
-	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Flip byte
@@ -22,7 +20,7 @@ const (
 )
 
 type Frame struct {
-	src  sdl.Rect
+	src  Rect
 	flip Flip
 }
 
@@ -36,13 +34,13 @@ type Animation struct {
 	timing   timingKind
 }
 
-func (a *Animation) AddFrame(x, y, w, h int, flip Flip) {
+func (a *Animation) AddFrame(x, y, width, height int, flip Flip) {
 	a.frames = append(a.frames, &Frame{
-		src: sdl.Rect{
-			X: int32(x),
-			Y: int32(y),
-			W: int32(w),
-			H: int32(h),
+		src: Rect{
+			X:      x,
+			Y:      y,
+			Width:  width,
+			Height: height,
 		},
 		flip: flip,
 	})

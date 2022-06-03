@@ -2,14 +2,12 @@ package gfx
 
 import (
 	"fmt"
-
-	"github.com/veandco/go-sdl2/sdl"
 )
 
 type Sprite struct {
 	*Texture
-	src        sdl.Rect
-	dst        sdl.FRect
+	src        Rect
+	dst        FRect
 	animation  *Animation
 	animations map[string]*Animation
 }
@@ -21,9 +19,9 @@ func (s *Sprite) SetFPS(fps float64) {
 func NewSprite(texture *Texture, x, y, width, height int) *Sprite {
 	s := &Sprite{
 		Texture: texture,
-		dst: sdl.FRect{
-			W: float32(texture.width),
-			H: float32(texture.height),
+		dst: FRect{
+			Width:  float64(texture.width),
+			Height: float64(texture.height),
 		},
 		animations: make(map[string]*Animation),
 	}
@@ -34,10 +32,10 @@ func NewSprite(texture *Texture, x, y, width, height int) *Sprite {
 }
 
 func (s *Sprite) Crop(x, y, width, height int) {
-	s.src.X = int32(x)
-	s.src.Y = int32(y)
-	s.src.W = int32(width)
-	s.src.H = int32(height)
+	s.src.X = x
+	s.src.Y = y
+	s.src.Width = width
+	s.src.Height = height
 
 	s.animation = nil
 }
@@ -74,18 +72,18 @@ func (s *Sprite) Update(delta float64) {
 }
 
 func (s *Sprite) Draw(x, y float64) {
-	s.dst.X = float32(x)
-	s.dst.Y = float32(y)
+	s.dst.X = x
+	s.dst.Y = y
 
 	if s.animation != nil {
-		s.dst.W = float32(s.animation.frame.src.W)
-		s.dst.H = float32(s.animation.frame.src.H)
+		s.dst.Width = float64(s.animation.frame.src.Width)
+		s.dst.Height = float64(s.animation.frame.src.Height)
 
-		s.Texture.Draw(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
+		s.Texture.DrawRect(&s.animation.frame.src, &s.dst, s.animation.frame.flip)
 	} else {
-		s.dst.W = float32(s.src.W)
-		s.dst.H = float32(s.src.H)
+		s.dst.Width = float64(s.src.Width)
+		s.dst.Height = float64(s.src.Height)
 
-		s.Texture.Draw(&s.src, &s.dst, FlipNone)
+		s.Texture.DrawRect(&s.src, &s.dst, FlipNone)
 	}
 }
