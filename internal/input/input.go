@@ -93,6 +93,18 @@ func NewDevice(bindings BindingMap) *Device {
 	return device
 }
 
+func HandleControllerEvent(event sdl.ControllerDeviceEvent) {
+	switch event.Type {
+	case sdl.CONTROLLERDEVICEADDED:
+		if c := sdl.GameControllerOpen(int(event.Which)); c != nil {
+			AddController(c.Joystick().InstanceID())
+		}
+
+	case sdl.CONTROLLERDEVICEREMOVED:
+		RemoveController(event.Which)
+	}
+}
+
 func AddController(id sdl.JoystickID) {
 	device := sdl.GameControllerFromInstanceID(id)
 	if device == nil {
