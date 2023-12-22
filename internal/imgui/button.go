@@ -29,3 +29,9 @@ func (ui *IMGUI) Button(x, y, width, height int) bool {
 
 	return !ui.Input.Mouse.IsDown && ui.IsHot && ui.IsActive
 }
+
+func (ui *IMGUI) ImageButton(x, y, width, height int, spriteKey string) bool {
+	ui.DrawData(spriteKey)
+
+	return ui.Button(x, y, width, height)
+}
