@@ -3,10 +3,10 @@ package gfx
 import (
 	"bytes"
 	"image"
+	_ "image/png"
 	"log"
 	"os"
-
-	_ "image/png" // Register the png format
+	"unsafe"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -93,7 +93,7 @@ func (rn *Renderer) NewTexture(img image.Image, scaleQuality ScaleQuality) *Text
 		}
 	}
 
-	texture.Update(nil, pixels, pitch)
+	texture.Update(nil, unsafe.Pointer(&pixels[0]), pitch)
 
 	t := &Texture{
 		renderer: rn,
