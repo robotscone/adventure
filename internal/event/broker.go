@@ -5,9 +5,9 @@ import (
 	"reflect"
 )
 
-type Event interface{}
+type Event any
 
-type Listener interface{}
+type Listener any
 
 type Broker struct {
 	listeners map[string][]Listener

@@ -87,7 +87,7 @@ type DrawCmd struct {
 	IsActive bool
 	IsBlur   bool
 	IsFocus  bool
-	Data     interface{}
+	Data     any
 
 	Clip struct {
 		X      int
@@ -122,7 +122,7 @@ type IMGUI struct {
 		y int
 	}
 
-	drawCmdData  interface{}
+	drawCmdData  any
 	drawBuffer   []*DrawCmd
 	previousHot  *Widget
 	containers   []*Widget
@@ -363,7 +363,7 @@ func (ui *IMGUI) RegionHitRect(x, y, width, height int) bool {
 	return ui.Input.Mouse.X >= x && ui.Input.Mouse.X < x+width && ui.Input.Mouse.Y >= y && ui.Input.Mouse.Y < y+height
 }
 
-func (ui *IMGUI) DrawData(data interface{}) {
+func (ui *IMGUI) DrawData(data any) {
 	ui.drawCmdData = data
 }
 

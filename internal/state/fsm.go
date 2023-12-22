@@ -32,7 +32,7 @@ func (f *FSM) RegisterState(name string, state State) {
 	state.Init(f, f.data)
 }
 
-func (f *FSM) Switch(name string, message interface{}) {
+func (f *FSM) Switch(name string, message any) {
 	state, ok := f.states[name]
 	if !ok {
 		fmt.Printf("attempted to switch to unknown state %q\n", name)
@@ -49,7 +49,7 @@ func (f *FSM) Switch(name string, message interface{}) {
 	state.Enter(f, f.data, message)
 }
 
-func (f *FSM) Push(name string, message interface{}) {
+func (f *FSM) Push(name string, message any) {
 	state, ok := f.states[name]
 	if !ok {
 		fmt.Printf("attempted to push unknown state %q\n", name)
