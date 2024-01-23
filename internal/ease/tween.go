@@ -1,8 +1,6 @@
 package ease
 
-import (
-	"time"
-)
+import "time"
 
 type Direction byte
 

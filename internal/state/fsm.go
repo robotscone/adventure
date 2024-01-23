@@ -1,8 +1,6 @@
 package state
 
-import (
-	"fmt"
-)
+import "fmt"
 
 var base = &Base{}
 

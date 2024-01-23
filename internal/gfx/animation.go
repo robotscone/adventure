@@ -1,8 +1,6 @@
 package gfx
 
-import (
-	"time"
-)
+import "time"
 
 type Flip byte
 

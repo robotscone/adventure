@@ -1,8 +1,6 @@
 package gfx
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type Sprite struct {
 	*Texture

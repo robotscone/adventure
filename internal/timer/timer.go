@@ -1,8 +1,6 @@
 package timer
 
-import (
-	"time"
-)
+import "time"
 
 type Func func()
 
