@@ -2,22 +2,26 @@
 // and some basic tweening functionality.
 //
 // You can find more information about the easing functions at:
-//   http://robertpenner.com/easing/
+//
+//	http://robertpenner.com/easing/
 //
 // The original functions where written using the following parameters:
-//   t = current time in a tween
-//   b = the original beginning value
-//   c = the change between b and the destination value (dst - b)
-//   d = duration of the tween
-//   s = overshoot amount (optional value in "back" functions)
-//   a = amplitude (optional value in "elastic" functions)
-//   p = period (optional value in "elastic" functions)
+//
+//	t = current time in a tween
+//	b = the original beginning value
+//	c = the change between b and the destination value (dst - b)
+//	d = duration of the tween
+//	s = overshoot amount (optional value in "back" functions)
+//	a = amplitude (optional value in "elastic" functions)
+//	p = period (optional value in "elastic" functions)
 //
 // Since these functions are used to interpolate a value between two points, if
 // we assume that...
-//   b = 0
-//   c = 1
-//   d = 1
+//
+//	b = 0
+//	c = 1
+//	d = 1
+//
 // ...then the equations can be simplified to take a normalised t value
 // Because of this the t value in these function is expected to be
 // in the range [0, 1] and the returned value will also be normalised
